@@ -5,8 +5,7 @@ import { Shuffle, Target, Zap } from 'lucide-react';
 import { ROULETTE_TEAMS } from '../../data/teams';
 import useAuthStore from '../../store/authStore';
 
-export default function RouletteSection() {
-  const { isAdmin } = useAuthStore();
+  const { user, profile } = useAuthStore();
   const [profiles, setProfiles] = useState([]);
   const [spinning, setSpinning] = useState(false);
   const [spinDeg, setSpinDeg] = useState(0);
@@ -23,37 +22,53 @@ export default function RouletteSection() {
     return unsub;
   }, []);
 
-  const allAssigned = profiles.length > 0 && profiles.every(p => p.rouletteTeamId);
+  const myTeamId = profile?.rouletteTeamId;
 
-  const triggerRoulette = async () => {
-    if (spinning || allAssigned) return;
+  const spinMyRoulette = async () => {
+    if (spinning || myTeamId || !user) return;
+
+    // Calcular equipos disponibles
+    const assignedIds = Object.values(assigned);
+    const availableTeams = ROULETTE_TEAMS.filter(t => !assignedIds.includes(t.id));
+
+    if (availableTeams.length === 0) {
+      alert("Lo sentimos, no quedan selecciones disponibles en la ruleta.");
+      return;
+    }
+
     setSpinning(true);
 
-    // Shuffle teams
-    const shuffled = [...ROULETTE_TEAMS].sort(() => Math.random() - 0.5);
-    const batch = writeBatch(db);
+    // Pick random available team
+    const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+    const teamIndex = ROULETTE_TEAMS.findIndex(t => t.id === randomTeam.id);
 
-    profiles.forEach((profile, index) => {
-      const team = shuffled[index % shuffled.length];
-      batch.update(doc(db, 'profiles', profile.uid), {
-        rouletteTeamId: team.id,
-        rouletteGoals: 0,
-      });
-    });
-
-    // Spin animation
-    const newDeg = spinDeg + 1440 + Math.floor(Math.random() * 360);
+    // Calcular el ángulo para que se pare justo en ese equipo
+    // El puntero está arriba (0 grados). Cada equipo está en angle = (360 / N) * i.
+    // Para que el equipo 'i' quede arriba, hay que girar la ruleta a 360 - angle.
+    const sliceAngle = 360 / ROULETTE_TEAMS.length;
+    const targetAngle = 360 - (sliceAngle * teamIndex);
+    
+    // Girar 5 vueltas completas (1800 grados) + el ángulo objetivo
+    // Como spinDeg guarda el giro acumulado, cogemos su base
+    const currentBase = spinDeg - (spinDeg % 360);
+    const newDeg = currentBase + 1800 + targetAngle;
+    
     setSpinDeg(newDeg);
 
+    // Esperar a que termine la animación
     await new Promise(r => setTimeout(r, 4000));
-    await batch.commit();
+
+    // Guardar en Firestore solo para el usuario actual
+    await updateDoc(doc(db, 'profiles', user.uid), {
+      rouletteTeamId: randomTeam.id,
+      rouletteGoals: 0,
+    });
+    
     setSpinning(false);
   };
 
   const getRouletteTeam = (teamId) => 
     ROULETTE_TEAMS.find(t => t.id === teamId);
-
-  const totalRoulettePts = profiles.reduce((s, p) => s + (p.rouletteGoals || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -64,8 +79,8 @@ export default function RouletteSection() {
           <h2 className="section-title">Ruleta de las Peores Selecciones</h2>
         </div>
         <p className="text-white/60 text-sm">
-          Cada jugador recibe aleatoriamente una selección débil. Por cada gol que 
-          marque esa selección durante el Mundial, el usuario suma <strong className="text-white">+1 punto</strong> en 
+          Gira la ruleta para recibir aleatoriamente una de las selecciones más débiles. 
+          Por cada gol que marque tu selección en el Mundial, sumarás <strong className="text-white">+1 punto</strong> en 
           la clasificación general.
         </p>
       </div>
@@ -110,10 +125,10 @@ export default function RouletteSection() {
                   >
                   </div>
                   <span
-                    className="absolute text-sm"
+                    className="absolute text-sm font-bold drop-shadow-md"
                     style={{
                       transform: `rotate(${angle + 90}deg)`,
-                      top: '18%',
+                      top: '15%',
                       left: '50%',
                     }}
                   >
@@ -125,29 +140,34 @@ export default function RouletteSection() {
             {/* Center */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-16 h-16 rounded-full bg-dark-800 border-2 border-white/20 
-                              flex items-center justify-center text-2xl">
+                              flex items-center justify-center text-2xl z-20">
                 ⚽
               </div>
             </div>
           </div>
         </div>
 
-        {/* Spin Button (Admin only) */}
-        {isAdmin() && !allAssigned && (
+        {/* Spin Button */}
+        {!user ? (
+          <div className="badge badge-phase text-sm py-2 px-4">
+            Inicia sesión para girar la ruleta
+          </div>
+        ) : myTeamId ? (
+          <div className="badge badge-gold text-sm py-2 px-4 flex flex-col items-center gap-1">
+            <span className="font-bold">¡Ya tienes tu selección!</span>
+            <span className="text-lg">
+              {getRouletteTeam(myTeamId)?.flag} {getRouletteTeam(myTeamId)?.name}
+            </span>
+          </div>
+        ) : (
           <button
-            onClick={triggerRoulette}
+            onClick={spinMyRoulette}
             disabled={spinning}
-            className="btn-primary flex items-center gap-2 text-lg px-8 py-3"
+            className="btn-primary flex items-center gap-2 text-lg px-8 py-3 animate-pulse-gold hover:scale-105 transition-transform"
           >
             <Zap size={20} />
-            {spinning ? '¡Girando...!' : '🎡 LANZAR RULETA'}
+            {spinning ? '¡Girando...!' : '🎡 TIRAR MI RULETA'}
           </button>
-        )}
-
-        {allAssigned && (
-          <div className="badge badge-gold text-sm py-2 px-4">
-            ✅ Ruleta asignada — Las selecciones ya están repartidas
-          </div>
         )}
       </div>
 
