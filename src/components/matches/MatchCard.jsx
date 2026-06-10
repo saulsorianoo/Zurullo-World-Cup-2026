@@ -42,13 +42,19 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     if (!user || locked) return;
     if (String(myPred.home).trim() === '' || String(myPred.away).trim() === '') return;
     setSaving(true);
+
+    // Debug info
+    console.log('[Save] user.uid:', user.uid);
+    console.log('[Save] match.id:', match.id);
     
     let failsafe = setTimeout(() => {
       setSaving(false);
-      alert("Error al guardar: no hay conexión con Firebase. Verifica tu internet.");
+      alert("Timeout: Firebase no respondió en 15s. Revisa la consola del navegador (F12) y tu conexión.");
     }, 15000);
 
     try {
+      // Forzar refresco del token antes de escribir
+      await user.getIdToken(true);
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
       await setDoc(predRef, {
         matchId:     match.id,
@@ -64,8 +70,9 @@ export default function MatchCard({ match, allProfiles, predictions }) {
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       clearTimeout(failsafe);
-      console.error("Error saving prediction:", error);
-      alert("Error al guardar: " + error.message);
+      console.error('[Save] Error código:', error.code);
+      console.error('[Save] Error mensaje:', error.message);
+      alert(`Error al guardar [${error.code}]: ${error.message}`);
     } finally {
       clearTimeout(failsafe);
       setSaving(false);
