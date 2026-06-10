@@ -10,6 +10,7 @@ import RoulettePage from './pages/RoulettePage';
 import PrizesPage from './pages/PrizesPage';
 import Admin from './pages/Admin';
 import useAuthStore from './store/authStore';
+import useDataStore from './store/dataStore';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuthStore();
@@ -27,10 +28,15 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   const { initAuth } = useAuthStore();
+  const { initData, loading: dataLoading } = useDataStore();
 
   useEffect(() => {
-    const unsubscribe = initAuth();
-    return () => unsubscribe?.();
+    const unsubscribeAuth = initAuth();
+    const unsubscribeData = initData();
+    return () => {
+      unsubscribeAuth?.();
+      unsubscribeData?.();
+    };
   }, []);
 
   return (

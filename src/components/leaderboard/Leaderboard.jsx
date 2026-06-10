@@ -4,24 +4,13 @@ import { db } from '../../lib/firebase';
 import { Trophy, Medal, TrendingUp } from 'lucide-react';
 import { calcPrizePool } from '../../lib/scoring';
 
+import useDataStore from '../../store/dataStore';
+
 const MEDALS = ['🥇', '🥈', '🥉'];
 const PODIUM_CLASSES = ['podium-1', 'podium-2', 'podium-3'];
 
 export default function Leaderboard({ showPrizes = false }) {
-  const [profiles, setProfiles] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, 'profiles'));
-    const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(d => d.data());
-      // Sort by totalPoints desc
-      data.sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0));
-      setProfiles(data);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
+  const { profiles, loading } = useDataStore();
 
   const paidUsers = profiles.filter(p => p.entryPaid);
   const prizes = calcPrizePool(paidUsers.length);

@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { collection, onSnapshot, query } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import React, { useState, useMemo } from 'react';
+import useDataStore from '../store/dataStore';
 import { MATCHES, groupMatchesByDate } from '../data/matches';
 import { PHASE_LABELS } from '../lib/scoring';
 import MatchCard from '../components/matches/MatchCard';
@@ -18,47 +17,9 @@ const PHASES = [
 ];
 
 export default function Home() {
-  const [matchData, setMatchData] = useState({});       // matchId -> firestoreData
-  const [predictions, setPredictions] = useState({});   // matchId -> { uid: pred }
-  const [profiles, setProfiles] = useState({});         // uid -> profile
+  const { matchesData: matchData, predictions, profilesMap: profiles, loading } = useDataStore();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  // Load match data (results set by admin)
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'matches'), (snap) => {
-      const data = {};
-      snap.docs.forEach(d => { data[d.id] = d.data(); });
-      setMatchData(data);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
-
-  // Load all predictions
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'predictions'), (snap) => {
-      const data = {};
-      snap.docs.forEach(d => {
-        const pred = d.data();
-        if (!data[pred.matchId]) data[pred.matchId] = {};
-        data[pred.matchId][pred.userId] = pred;
-      });
-      setPredictions(data);
-    });
-    return unsub;
-  }, []);
-
-  // Load profiles for display
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'profiles'), (snap) => {
-      const data = {};
-      snap.docs.forEach(d => { data[d.id] = d.data(); });
-      setProfiles(data);
-    });
-    return unsub;
-  }, []);
 
   // Merge static match data with Firestore results
   const enrichedMatches = useMemo(() => {

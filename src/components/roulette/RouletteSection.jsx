@@ -4,24 +4,17 @@ import { collection, onSnapshot, doc, updateDoc, writeBatch } from 'firebase/fir
 import { Shuffle, Target, Zap } from 'lucide-react';
 import { ROULETTE_TEAMS } from '../../data/teams';
 import useAuthStore from '../../store/authStore';
+import useDataStore from '../../store/dataStore';
 
 export default function RouletteSection() {
   const { user, profile } = useAuthStore();
-  const [profiles, setProfiles] = useState([]);
+  const { profiles, profilesMap } = useDataStore();
   const [spinning, setSpinning] = useState(false);
   const [spinDeg, setSpinDeg] = useState(0);
-  const [assigned, setAssigned] = useState({}); // uid -> rouletteTeamId
 
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'profiles'), (snap) => {
-      const data = snap.docs.map(d => d.data());
-      setProfiles(data);
-      const map = {};
-      data.forEach(p => { if (p.rouletteTeamId) map[p.uid] = p.rouletteTeamId; });
-      setAssigned(map);
-    });
-    return unsub;
-  }, []);
+  // Compute assigned map from profiles
+  const assigned = {};
+  profiles.forEach(p => { if (p.rouletteTeamId) assigned[p.uid] = p.rouletteTeamId; });
 
   const myTeamId = profile?.rouletteTeamId;
 

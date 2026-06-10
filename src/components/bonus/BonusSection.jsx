@@ -5,38 +5,34 @@ import { Star, Lock, CheckCircle, Trophy, Award, Footprints } from 'lucide-react
 import { TEAMS } from '../../data/teams';
 import useAuthStore from '../../store/authStore';
 
+import useDataStore from '../../store/dataStore';
+
 const BONUS_START = '2026-06-11T22:00:00Z'; // Primer partido del Mundial
 
 export default function BonusSection() {
   const { user, profile } = useAuthStore();
+  const { bonusData, config } = useDataStore();
+  
+  // Use local state for the form so user can edit it before saving
   const [bonus, setBonus] = useState({ championId: '', runnerUpId: '', topScorerName: '', topScorerTeamId: '' });
-  const [actualBonus, setActualBonus] = useState(null); // Admin-set results
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const locked = new Date() >= new Date(BONUS_START);
+  const actualBonus = config?.bonusResults || null;
 
+  // Sync from global store to local form state on load
   useEffect(() => {
-    if (!user) return;
-    const unsub = onSnapshot(doc(db, 'bonus', user.uid), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setBonus({
-          championId:     data.championId || '',
-          runnerUpId:     data.runnerUpId || '',
-          topScorerName:  data.topScorerName || '',
-          topScorerTeamId: data.topScorerTeamId || '',
-        });
-      }
-    });
-
-    // Load actual results (set by admin)
-    const actualUnsub = onSnapshot(doc(db, 'config', 'bonusResults'), (snap) => {
-      if (snap.exists()) setActualBonus(snap.data());
-    });
-
-    return () => { unsub(); actualUnsub(); };
-  }, [user]);
+    if (user && bonusData[user.uid]) {
+      const data = bonusData[user.uid];
+      setBonus({
+        championId:     data.championId || '',
+        runnerUpId:     data.runnerUpId || '',
+        topScorerName:  data.topScorerName || '',
+        topScorerTeamId: data.topScorerTeamId || '',
+      });
+    }
+  }, [user, bonusData]);
 
   const saveBonus = async () => {
     if (!user || locked) return;
