@@ -51,6 +51,9 @@ export default function MatchCard({ match, allProfiles, predictions }) {
       }, { merge: true });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      console.error("Error saving prediction:", error);
+      alert("Error al guardar: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -168,7 +171,6 @@ export default function MatchCard({ match, allProfiles, predictions }) {
                 max="20"
                 value={myPred.home}
                 onChange={(e) => setMyPred(p => ({ ...p, home: e.target.value }))}
-                onBlur={savePrediction}
                 disabled={locked}
                 placeholder="0"
                 className="score-input"
@@ -181,7 +183,6 @@ export default function MatchCard({ match, allProfiles, predictions }) {
                 max="20"
                 value={myPred.away}
                 onChange={(e) => setMyPred(p => ({ ...p, away: e.target.value }))}
-                onBlur={savePrediction}
                 disabled={locked}
                 placeholder="0"
                 className="score-input"
