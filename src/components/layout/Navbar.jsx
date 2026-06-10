@@ -83,10 +83,10 @@ export default function Navbar() {
                 >
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 
                                   flex items-center justify-center text-dark-900 font-bold text-sm">
-                    {(profile?.username || user.email || 'U')[0].toUpperCase()}
+                    {(profile?.username || user.displayName || user.email || 'U')[0].toUpperCase()}
                   </div>
                   <span className="hidden sm:block text-sm font-medium text-white/80 max-w-24 truncate">
-                    {profile?.username || user.email}
+                    {profile?.username || user.displayName || user.email}
                   </span>
                   <ChevronDown size={14} className="text-white/50" />
                 </button>

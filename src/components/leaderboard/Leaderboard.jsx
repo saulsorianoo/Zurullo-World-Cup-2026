@@ -12,8 +12,8 @@ const PODIUM_CLASSES = ['podium-1', 'podium-2', 'podium-3'];
 export default function Leaderboard({ showPrizes = false }) {
   const { profiles, loading } = useDataStore();
 
-  const paidUsers = profiles.filter(p => p.entryPaid);
-  const prizes = calcPrizePool(paidUsers.length);
+  // Calculate prize pool based on ALL registered users (10€ each)
+  const prizes = calcPrizePool(profiles.length);
 
   if (loading && profiles.length === 0) {
     return (
@@ -38,7 +38,7 @@ export default function Leaderboard({ showPrizes = false }) {
                   🏆 BOTE TOTAL: {prizes.total}€
                 </div>
                 <div className="text-white/60 text-sm">
-                  {paidUsers.length} jugadores × 10€
+                  {profiles.length} jugadores × 10€
                 </div>
               </div>
             </div>
@@ -109,9 +109,6 @@ export default function Leaderboard({ showPrizes = false }) {
                           <div className="font-semibold text-white text-sm">
                             {p.username}
                           </div>
-                          {p.entryPaid && (
-                            <span className="text-green-400 text-xs">✓ Pagado</span>
-                          )}
                         </div>
                       </div>
                     </td>
