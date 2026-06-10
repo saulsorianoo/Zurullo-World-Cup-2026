@@ -22,7 +22,31 @@ const useAuthStore = create((set, get) => ({
         try {
           const profileRef = doc(db, 'profiles', firebaseUser.uid);
           const profileSnap = await getDoc(profileRef);
-          const profile = profileSnap.exists() ? profileSnap.data() : null;
+          
+          let profile = null;
+          if (profileSnap.exists()) {
+            profile = profileSnap.data();
+          } else {
+            // El usuario existe en Auth pero no en Firestore (ej. falló por reglas de seguridad antiguas)
+            // Lo creamos automáticamente para reparar su cuenta.
+            const newProfile = {
+              uid:           firebaseUser.uid,
+              username:      firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              email:         firebaseUser.email,
+              displayName:   firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              isAdmin:       false,
+              entryPaid:     false,
+              rouletteTeamId: null,
+              rouletteGoals: 0,
+              matchPoints:   0,
+              bonusPoints:   0,
+              totalPoints:   0,
+              createdAt:     new Date().toISOString(),
+            };
+            await setDoc(profileRef, newProfile);
+            profile = newProfile;
+          }
+
           set({ user: firebaseUser, profile, loading: false, error: null });
         } catch (err) {
           set({ user: firebaseUser, profile: null, loading: false });
