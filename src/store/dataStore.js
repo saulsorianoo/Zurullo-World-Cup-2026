@@ -12,6 +12,8 @@ const useDataStore = create((set, get) => ({
   loading: true,        // Initial loading state
   initialized: false,
 
+  resetInitialized: () => set({ initialized: false, loading: true }),
+
   initData: () => {
     if (get().initialized) return;
     
