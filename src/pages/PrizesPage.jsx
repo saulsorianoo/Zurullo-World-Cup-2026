@@ -4,20 +4,13 @@ import { db } from '../lib/firebase';
 import { calcPrizePool } from '../lib/scoring';
 import { Gift, DollarSign, Users, Trophy, Star, Zap } from 'lucide-react';
 
-export default function PrizesPage() {
-  const [profiles, setProfiles] = useState([]);
-  
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, 'profiles'), (snap) => {
-      setProfiles(snap.docs.map(d => d.data()));
-    });
-    return unsub;
-  }, []);
+import useDataStore from '../store/dataStore';
 
-  const paidCount  = profiles.filter(p => p.entryPaid).length;
+export default function PrizesPage() {
+  const { profiles } = useDataStore();
+  
   const totalCount = profiles.length;
-  const prizes     = calcPrizePool(paidCount);
-  const pending    = totalCount - paidCount;
+  const prizes     = calcPrizePool(totalCount);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -43,8 +36,7 @@ export default function PrizesPage() {
         <div className="text-white/60 text-lg">BOTE TOTAL</div>
         <div className="flex items-center justify-center gap-2 mt-2 text-sm text-white/40">
           <Users size={14} />
-          {paidCount} de {totalCount} jugadores han pagado
-          {pending > 0 && <span className="text-orange-400">({pending} pendiente{pending > 1 ? 's' : ''})</span>}
+          {totalCount} jugadores inscritos
         </div>
       </div>
 
@@ -150,7 +142,6 @@ export default function PrizesPage() {
                   {(p.username || 'U')[0].toUpperCase()}
                 </div>
                 <span className="text-white/80 text-sm truncate">{p.username}</span>
-                {p.entryPaid && <span className="ml-auto text-green-400 text-xs">✓</span>}
               </div>
             ))}
           </div>
