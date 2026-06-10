@@ -12,6 +12,7 @@ export default function MatchCard({ match, allProfiles, predictions }) {
   const { user, profile } = useAuthStore();
   const [myPred, setMyPred] = useState({ home: '', away: '', qualifierId: '' });
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   const locked = isMatchLocked(match.kickoff);
@@ -48,6 +49,8 @@ export default function MatchCard({ match, allProfiles, predictions }) {
         qualifierId: myPred.qualifierId || null,
         updatedAt:   new Date().toISOString(),
       }, { merge: true });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } finally {
       setSaving(false);
     }
@@ -206,9 +209,10 @@ export default function MatchCard({ match, allProfiles, predictions }) {
                 <button
                   onClick={savePrediction}
                   disabled={saving || myPred.home === '' || myPred.away === ''}
-                  className="btn-primary text-xs py-2 px-3 disabled:opacity-40"
+                  className={`btn-primary text-xs py-2 px-3 disabled:opacity-40 transition-colors duration-300
+                              ${saved ? '!bg-green-500 !text-white !border-green-400' : ''}`}
                 >
-                  {saving ? '...' : <CheckCircle size={14} />}
+                  {saving ? '...' : saved ? '¡Guardado!' : <CheckCircle size={14} />}
                 </button>
               )}
               {locked && (
@@ -222,7 +226,7 @@ export default function MatchCard({ match, allProfiles, predictions }) {
       )}
 
       {/* Expand for all predictions */}
-      {predictions && Object.keys(predictions).length > 0 && (
+      {predictions && (
         <div className="border-t border-white/5">
           <button
             onClick={() => setExpanded(!expanded)}

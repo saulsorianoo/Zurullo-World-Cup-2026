@@ -12,9 +12,10 @@ export default function RouletteSection() {
   const [spinning, setSpinning] = useState(false);
   const [spinDeg, setSpinDeg] = useState(0);
 
-  // Compute assigned map from profiles
   const assigned = {};
   profiles.forEach(p => { if (p.rouletteTeamId) assigned[p.uid] = p.rouletteTeamId; });
+  const assignedIds = Object.values(assigned);
+  const availableTeams = ROULETTE_TEAMS.filter(t => !assignedIds.includes(t.id));
 
   const myTeamId = profile?.rouletteTeamId;
 
@@ -22,9 +23,6 @@ export default function RouletteSection() {
     if (spinning || myTeamId || !user) return;
 
     // Calcular equipos disponibles
-    const assignedIds = Object.values(assigned);
-    const availableTeams = ROULETTE_TEAMS.filter(t => !assignedIds.includes(t.id));
-
     if (availableTeams.length === 0) {
       alert("Lo sentimos, no quedan selecciones disponibles en la ruleta.");
       return;
@@ -34,12 +32,12 @@ export default function RouletteSection() {
 
     // Pick random available team
     const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
-    const teamIndex = ROULETTE_TEAMS.findIndex(t => t.id === randomTeam.id);
+    const teamIndex = availableTeams.findIndex(t => t.id === randomTeam.id);
 
     // Calcular el ángulo para que se pare justo en ese equipo
     // El puntero está arriba (0 grados). Cada equipo está en angle = (360 / N) * i.
     // Para que el equipo 'i' quede arriba, hay que girar la ruleta a 360 - angle.
-    const sliceAngle = 360 / ROULETTE_TEAMS.length;
+    const sliceAngle = 360 / availableTeams.length;
     const targetAngle = 360 - (sliceAngle * teamIndex);
     
     // Girar 5 vueltas completas (1800 grados) + el ángulo objetivo
@@ -98,9 +96,9 @@ export default function RouletteSection() {
               transition: spinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
             }}
           >
-            {ROULETTE_TEAMS.map((team, i) => {
-              const angle = (360 / ROULETTE_TEAMS.length) * i;
-              const hue = (i * (360 / ROULETTE_TEAMS.length)) % 360;
+            {availableTeams.map((team, i) => {
+              const angle = (360 / availableTeams.length) * i;
+              const hue = (i * (360 / availableTeams.length)) % 360;
               return (
                 <div
                   key={team.id}
@@ -228,20 +226,16 @@ export default function RouletteSection() {
       <div className="glass-card p-5">
         <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
           <Shuffle size={16} className="text-red-400" />
-          Pool de Selecciones ({ROULETTE_TEAMS.length} equipos)
+          Pool de Selecciones ({availableTeams.length} equipos disponibles)
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {ROULETTE_TEAMS.map(team => (
+          {availableTeams.map(team => (
             <div
               key={team.id}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10
-                          ${Object.values(assigned).includes(team.id) ? 'opacity-50' : ''}`}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10"
             >
               <span className="text-xl">{team.flag}</span>
               <span className="text-sm text-white/80">{team.name}</span>
-              {Object.values(assigned).includes(team.id) && (
-                <span className="ml-auto text-green-400 text-xs">✓</span>
-              )}
             </div>
           ))}
         </div>

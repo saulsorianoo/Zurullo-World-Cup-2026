@@ -154,4 +154,65 @@
   .roulette-spin {
     animation: rouletteStop 4s cubic-bezier(0.17, 0.67, 0.12, 0.99) forwards;
   }
+
+  /* Bracket Layout */
+  .bracket-wrapper {
+    @apply flex items-stretch justify-center gap-8 min-w-max pb-8;
+  }
+  .bracket-column {
+    @apply flex flex-col justify-around gap-4 w-64 relative;
+  }
+  .bracket-center {
+    @apply w-72 flex flex-col justify-center items-center gap-4 relative z-20;
+  }
+  .bracket-round-title {
+    @apply text-center text-sm font-bold text-white/50 mb-4 tracking-widest uppercase;
+  }
+  .bracket-matches {
+    @apply flex flex-col justify-around flex-1 gap-6 relative;
+  }
+  .bracket-node {
+    @apply relative flex items-center justify-center;
+  }
+  
+  .bracket-match {
+    @apply w-full bg-dark-800/80 border border-white/10 rounded-lg overflow-hidden shadow-lg 
+           transition-all duration-300 hover:border-white/30 z-10 relative;
+  }
+  
+  .bracket-team {
+    @apply flex items-center justify-between p-2.5 px-3 bg-dark-800 text-sm;
+  }
+  .bracket-flag {
+    @apply w-6 text-center flex-shrink-0 flex items-center justify-center;
+  }
+  .bracket-name {
+    @apply flex-1 px-2 truncate text-white/80;
+  }
+  .bracket-score {
+    @apply font-display text-lg w-6 text-center text-white/90;
+  }
+
+  /* Bracket Connectors (Lines) */
+  /* Line going out to the right (Left side of bracket) */
+  .bracket-column:not(:last-child) .align-left::after {
+    content: '';
+    @apply absolute -right-4 top-1/2 w-4 border-b-2 border-white/10;
+  }
+  /* Vertical connector joining two matches (Left side) */
+  .bracket-column:not(:last-child) .bracket-matches > .bracket-node:nth-child(odd)::after {
+    content: '';
+    @apply absolute -right-4 top-1/2 h-[calc(100%+1.5rem)] border-r-2 border-white/10;
+  }
+  
+  /* Line going out to the left (Right side of bracket) */
+  .bracket-column:not(:first-child) .align-right::before {
+    content: '';
+    @apply absolute -left-4 top-1/2 w-4 border-b-2 border-white/10;
+  }
+  /* Vertical connector joining two matches (Right side) */
+  .bracket-column:not(:first-child) .bracket-matches > .bracket-node:nth-child(odd)::before {
+    content: '';
+    @apply absolute -left-4 top-1/2 h-[calc(100%+1.5rem)] border-l-2 border-white/10;
+  }
 }
