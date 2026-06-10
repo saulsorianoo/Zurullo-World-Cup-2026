@@ -19,6 +19,8 @@ const useAuthStore = create((set, get) => ({
   initAuth: () => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        // Unblock loading immediately so protected routes (Bonus) render instantly
+        set({ user: firebaseUser, loading: false, error: null });
         try {
           const profileRef = doc(db, 'profiles', firebaseUser.uid);
           const profileSnap = await getDoc(profileRef);
@@ -27,15 +29,14 @@ const useAuthStore = create((set, get) => ({
           if (profileSnap.exists()) {
             profile = profileSnap.data();
           } else {
-            // El usuario existe en Auth pero no en Firestore (ej. falló por reglas de seguridad antiguas)
-            // Lo creamos automáticamente para reparar su cuenta.
+            // El usuario existe en Auth pero no en Firestore
             const newProfile = {
               uid:           firebaseUser.uid,
               username:      firebaseUser.displayName || firebaseUser.email.split('@')[0],
               email:         firebaseUser.email,
               displayName:   firebaseUser.displayName || firebaseUser.email.split('@')[0],
               isAdmin:       false,
-              entryPaid:     false,
+              entryPaid:     true, // Default to true so it counts for the prize pot if needed
               rouletteTeamId: null,
               rouletteGoals: 0,
               matchPoints:   0,
@@ -47,9 +48,9 @@ const useAuthStore = create((set, get) => ({
             profile = newProfile;
           }
 
-          set({ user: firebaseUser, profile, loading: false, error: null });
+          set({ profile });
         } catch (err) {
-          set({ user: firebaseUser, profile: null, loading: false });
+          set({ profile: null });
         }
       } else {
         set({ user: null, profile: null, loading: false });
