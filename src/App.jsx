@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import LeaderboardPage from './pages/LeaderboardPage';
+import BracketPage from './pages/BracketPage';
 import BonusPage from './pages/BonusPage';
 import RoulettePage from './pages/RoulettePage';
 import PrizesPage from './pages/PrizesPage';
@@ -60,6 +61,7 @@ export default function App() {
 
             {/* Mostly public (but some features require auth) */}
             <Route path="/"           element={<Home />} />
+            <Route path="/bracket"    element={<BracketPage />} />
             <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/roulette"   element={<RoulettePage />} />
             <Route path="/prizes"     element={<PrizesPage />} />

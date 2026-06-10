@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import useDataStore from '../store/dataStore';
 import { MATCHES, groupMatchesByDate } from '../data/matches';
 import { PHASE_LABELS } from '../lib/scoring';

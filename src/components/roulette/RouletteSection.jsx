@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../../lib/firebase';
 import { collection, onSnapshot, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { Shuffle, Target, Zap } from 'lucide-react';

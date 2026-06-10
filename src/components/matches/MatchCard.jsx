@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock, Clock, CheckCircle, ChevronRight } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -84,7 +84,16 @@ export default function MatchCard({ match, allProfiles, predictions }) {
         <div className="flex items-center justify-between gap-4">
           {/* Home Team */}
           <div className="flex-1 flex items-center gap-3">
-            <span className="text-3xl">{homeTeam?.flag || '🏳️'}</span>
+            {homeTeam?.iso2 ? (
+              <img 
+                src={`https://flagcdn.com/w40/${homeTeam.iso2}.png`} 
+                srcSet={`https://flagcdn.com/w80/${homeTeam.iso2}.png 2x`}
+                alt={homeTeam.name} 
+                className="w-8 rounded-[2px] shadow-sm"
+              />
+            ) : (
+              <span className="text-3xl">{homeTeam?.flag || '🏳️'}</span>
+            )}
             <div>
               <div className="font-semibold text-white text-sm sm:text-base">
                 {homeTeam?.name || match.home}
@@ -117,7 +126,16 @@ export default function MatchCard({ match, allProfiles, predictions }) {
               </div>
               <div className="text-white/40 text-xs">{awayTeam?.id}</div>
             </div>
-            <span className="text-3xl">{awayTeam?.flag || '🏳️'}</span>
+            {awayTeam?.iso2 ? (
+              <img 
+                src={`https://flagcdn.com/w40/${awayTeam.iso2}.png`} 
+                srcSet={`https://flagcdn.com/w80/${awayTeam.iso2}.png 2x`}
+                alt={awayTeam.name} 
+                className="w-8 rounded-[2px] shadow-sm"
+              />
+            ) : (
+              <span className="text-3xl">{awayTeam?.flag || '🏳️'}</span>
+            )}
           </div>
         </div>
 

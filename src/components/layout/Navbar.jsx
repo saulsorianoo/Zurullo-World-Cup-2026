@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Trophy, Home, Star, Shuffle, Gift, Settings, 
-  LogOut, User, Menu, X, ChevronDown
+  LogOut, User, Menu, X, ChevronDown, GitMerge
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 
 const navItems = [
   { to: '/',            label: 'Partidos',      icon: Home },
+  { to: '/bracket',     label: 'Eliminatorias', icon: GitMerge },
   { to: '/leaderboard', label: 'Clasificación',  icon: Trophy },
   { to: '/bonus',       label: 'Bonus',          icon: Star },
   { to: '/roulette',    label: 'Ruleta',         icon: Shuffle },
