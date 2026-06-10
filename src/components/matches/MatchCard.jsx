@@ -40,6 +40,12 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     if (!user || locked) return;
     if (String(myPred.home).trim() === '' || String(myPred.away).trim() === '') return;
     setSaving(true);
+    
+    let failsafe = setTimeout(() => {
+      setSaving(false);
+      alert("Error: Tiempo de espera agotado conectando con Firebase.");
+    }, 5000);
+
     try {
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
       await setDoc(predRef, {
@@ -51,12 +57,15 @@ export default function MatchCard({ match, allProfiles, predictions }) {
         qualifierId: myPred.qualifierId || null,
         updatedAt:   new Date().toISOString(),
       }, { merge: true });
+      clearTimeout(failsafe);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (error) {
+      clearTimeout(failsafe);
       console.error("Error saving prediction:", error);
       alert("Error al guardar: " + error.message);
     } finally {
+      clearTimeout(failsafe);
       setSaving(false);
     }
   };
@@ -71,14 +80,22 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     if (!window.confirm('¿Seguro que quieres borrar este pronóstico?')) return;
     
     setSaving(true);
+    let failsafe = setTimeout(() => {
+      setSaving(false);
+      alert("Error: Tiempo de espera agotado al borrar en Firebase.");
+    }, 5000);
+
     try {
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
       await deleteDoc(predRef);
+      clearTimeout(failsafe);
       // Local state clears automatically via useEffect
     } catch (error) {
+      clearTimeout(failsafe);
       console.error("Error deleting prediction:", error);
       alert("Error al eliminar: " + error.message);
     } finally {
+      clearTimeout(failsafe);
       setSaving(false);
     }
   };
