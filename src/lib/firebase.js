@@ -5,7 +5,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,9 +20,7 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
-// Inicializar Firestore con caché persistente (soluciona el problema de carga lenta al cambiar pestañas)
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
-});
+// Inicializar Firestore (sin caché persistente compleja para evitar cuelgues con múltiples pestañas)
+export const db = getFirestore(app);
 
 export default app;
