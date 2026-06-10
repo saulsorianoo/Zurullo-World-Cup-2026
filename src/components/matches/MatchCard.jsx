@@ -21,14 +21,16 @@ export default function MatchCard({ match, allProfiles, predictions }) {
   const awayTeam = getTeamById(match.away);
   const isKnockout = isKnockoutPhase(match.phase);
 
-  // Load own prediction (only update if it changes from server)
+  // Sync from Firestore only when a saved prediction actually exists
+  // NEVER wipe typed values that the user hasn't saved yet
   useEffect(() => {
     if (!user) return;
     const predKey = predictions?.[user.uid];
+    if (!predKey) return; // No saved prediction: leave typed values alone
     setMyPred(prev => {
-      const newHome = predKey?.home !== undefined ? String(predKey.home) : '';
-      const newAway = predKey?.away !== undefined ? String(predKey.away) : '';
-      const newQual = predKey?.qualifierId || '';
+      const newHome = predKey.home !== undefined ? String(predKey.home) : '';
+      const newAway = predKey.away !== undefined ? String(predKey.away) : '';
+      const newQual = predKey.qualifierId || '';
       if (prev.home === newHome && prev.away === newAway && prev.qualifierId === newQual) {
         return prev;
       }
@@ -43,8 +45,8 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     
     let failsafe = setTimeout(() => {
       setSaving(false);
-      alert("Error: Tiempo de espera agotado conectando con Firebase.");
-    }, 5000);
+      alert("Error al guardar: no hay conexión con Firebase. Verifica tu internet.");
+    }, 15000);
 
     try {
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
@@ -82,8 +84,8 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     setSaving(true);
     let failsafe = setTimeout(() => {
       setSaving(false);
-      alert("Error: Tiempo de espera agotado al borrar en Firebase.");
-    }, 5000);
+      alert("Error al borrar: no hay conexión con Firebase. Verifica tu internet.");
+    }, 15000);
 
     try {
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
