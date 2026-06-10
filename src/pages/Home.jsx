@@ -108,12 +108,7 @@ export default function Home() {
       </div>
 
       {/* Matches grouped by date */}
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-10 h-10 border-2 border-yellow-400/30 border-t-yellow-400 
-                          rounded-full animate-spin" />
-        </div>
-      ) : sortedDates.length === 0 ? (
+      {sortedDates.length === 0 ? (
         <div className="glass-card p-10 text-center">
           <Search size={48} className="text-white/20 mx-auto mb-3" />
           <p className="text-white/50">No se encontraron partidos con ese filtro</p>

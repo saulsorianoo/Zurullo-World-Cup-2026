@@ -15,7 +15,7 @@ export default function Leaderboard({ showPrizes = false }) {
   const paidUsers = profiles.filter(p => p.entryPaid);
   const prizes = calcPrizePool(paidUsers.length);
 
-  if (loading) {
+  if (loading && profiles.length === 0) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-10 h-10 border-2 border-yellow-400/30 border-t-yellow-400 
