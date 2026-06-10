@@ -7,8 +7,17 @@ import { Gift, DollarSign, Users, Trophy, Star, Zap } from 'lucide-react';
 import useDataStore from '../store/dataStore';
 
 export default function PrizesPage() {
-  const { profiles } = useDataStore();
+  const { profiles, loading } = useDataStore();
   
+  if (loading && profiles.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-10 h-10 border-2 border-yellow-400/30 border-t-yellow-400 
+                        rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   const totalCount = profiles.length;
   const prizes     = calcPrizePool(totalCount);
 

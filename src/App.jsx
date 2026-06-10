@@ -27,17 +27,21 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
-  const { initAuth } = useAuthStore();
+  const { initAuth, loading: authLoading } = useAuthStore();
   const { initData, loading: dataLoading } = useDataStore();
 
   useEffect(() => {
     const unsubscribeAuth = initAuth();
-    const unsubscribeData = initData();
-    return () => {
-      unsubscribeAuth?.();
-      unsubscribeData?.();
-    };
+    return () => unsubscribeAuth?.();
   }, []);
+
+  useEffect(() => {
+    // Solo inicializamos los datos de Firestore cuando Auth ya sabe si estamos logueados o no
+    if (!authLoading) {
+      const unsubscribeData = initData();
+      return () => unsubscribeData?.();
+    }
+  }, [authLoading]);
 
   return (
     <Router>
