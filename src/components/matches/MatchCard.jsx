@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Lock, Clock, CheckCircle, ChevronRight } from 'lucide-react';
+import { Lock, Clock, CheckCircle, ChevronRight, Trash2 } from 'lucide-react';
 import { db } from '../../lib/firebase';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { isMatchLocked } from '../../data/matches';
 import { getTeamById } from '../../data/teams';
 import { isKnockoutPhase, getColorClass, PHASE_LABELS } from '../../lib/scoring';
@@ -25,17 +25,15 @@ export default function MatchCard({ match, allProfiles, predictions }) {
   useEffect(() => {
     if (!user) return;
     const predKey = predictions?.[user.uid];
-    if (predKey) {
-      setMyPred(prev => {
-        const newHome = predKey.home !== undefined ? String(predKey.home) : '';
-        const newAway = predKey.away !== undefined ? String(predKey.away) : '';
-        const newQual = predKey.qualifierId || '';
-        if (prev.home === newHome && prev.away === newAway && prev.qualifierId === newQual) {
-          return prev;
-        }
-        return { home: newHome, away: newAway, qualifierId: newQual };
-      });
-    }
+    setMyPred(prev => {
+      const newHome = predKey?.home !== undefined ? String(predKey.home) : '';
+      const newAway = predKey?.away !== undefined ? String(predKey.away) : '';
+      const newQual = predKey?.qualifierId || '';
+      if (prev.home === newHome && prev.away === newAway && prev.qualifierId === newQual) {
+        return prev;
+      }
+      return { home: newHome, away: newAway, qualifierId: newQual };
+    });
   }, [predictions, user]);
 
   const savePrediction = async () => {
@@ -58,6 +56,28 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     } catch (error) {
       console.error("Error saving prediction:", error);
       alert("Error al guardar: " + error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deletePrediction = async () => {
+    if (!user || locked) return;
+    if (!predictions?.[user.uid]) {
+      setMyPred({ home: '', away: '', qualifierId: '' });
+      return;
+    }
+    
+    if (!window.confirm('¿Seguro que quieres borrar este pronóstico?')) return;
+    
+    setSaving(true);
+    try {
+      const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
+      await deleteDoc(predRef);
+      // Local state clears automatically via useEffect
+    } catch (error) {
+      console.error("Error deleting prediction:", error);
+      alert("Error al eliminar: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -211,14 +231,27 @@ export default function MatchCard({ match, allProfiles, predictions }) {
 
               {/* Save button */}
               {!locked && (
-                <button
-                  onClick={savePrediction}
-                  disabled={saving || String(myPred.home).trim() === '' || String(myPred.away).trim() === ''}
-                  className={`btn-primary text-xs py-2 px-3 disabled:opacity-40 transition-colors duration-300
-                              ${saved ? '!bg-green-500 !text-white !border-green-400' : ''}`}
-                >
-                  {saving ? '...' : saved ? '¡Guardado!' : <CheckCircle size={14} />}
-                </button>
+                <div className="flex items-center gap-1">
+                  {predictions?.[user.uid] && (
+                    <button
+                      onClick={deletePrediction}
+                      disabled={saving}
+                      title="Eliminar pronóstico"
+                      className="btn bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 
+                                 text-xs py-2 px-2 transition-colors duration-300 disabled:opacity-40"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                  <button
+                    onClick={savePrediction}
+                    disabled={saving || String(myPred.home).trim() === '' || String(myPred.away).trim() === ''}
+                    className={`btn-primary text-xs py-2 px-3 disabled:opacity-40 transition-colors duration-300
+                                ${saved ? '!bg-green-500 !text-white !border-green-400' : ''}`}
+                  >
+                    {saving ? '...' : saved ? '¡Guardado!' : <CheckCircle size={14} />}
+                  </button>
+                </div>
               )}
               {locked && (
                 <span className="text-orange-400/70 text-xs flex items-center gap-1">
