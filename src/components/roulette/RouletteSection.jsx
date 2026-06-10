@@ -5,6 +5,7 @@ import { Shuffle, Target, Zap } from 'lucide-react';
 import { ROULETTE_TEAMS } from '../../data/teams';
 import useAuthStore from '../../store/authStore';
 
+export default function RouletteSection() {
   const { user, profile } = useAuthStore();
   const [profiles, setProfiles] = useState([]);
   const [spinning, setSpinning] = useState(false);
