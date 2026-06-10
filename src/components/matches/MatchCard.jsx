@@ -53,8 +53,6 @@ export default function MatchCard({ match, allProfiles, predictions }) {
     }, 15000);
 
     try {
-      // Forzar refresco del token antes de escribir
-      await user.getIdToken(true);
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
       await setDoc(predRef, {
         matchId:     match.id,
@@ -254,6 +252,7 @@ export default function MatchCard({ match, allProfiles, predictions }) {
                   {awayTeam && <option value={awayTeam.id}>{awayTeam.flag} {awayTeam.name}</option>}
                 </select>
               )}
+
 
               {/* Save button */}
               {!locked && (

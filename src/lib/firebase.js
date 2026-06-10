@@ -4,7 +4,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY            || 'AIzaSyC7s3jhusPZC9PwjfwZMtFO30x4Brk3rTI',
@@ -18,6 +18,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db   = getFirestore(app);
+
+// experimentalForceLongPolling: evita el transporte gRPC-Web/WebSocket que
+// se bloquea en ciertos navegadores/redes (GitHub Pages, proxies, etc.)
+// y usa HTTP long polling como fallback fiable.
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache(),
+  experimentalForceLongPolling: true,
+});
 
 export default app;
