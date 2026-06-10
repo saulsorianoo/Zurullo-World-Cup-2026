@@ -21,22 +21,26 @@ export default function MatchCard({ match, allProfiles, predictions }) {
   const awayTeam = getTeamById(match.away);
   const isKnockout = isKnockoutPhase(match.phase);
 
-  // Load own prediction
+  // Load own prediction (only update if it changes from server)
   useEffect(() => {
     if (!user) return;
     const predKey = predictions?.[user.uid];
     if (predKey) {
-      setMyPred({
-        home: predKey.home !== undefined ? String(predKey.home) : '',
-        away: predKey.away !== undefined ? String(predKey.away) : '',
-        qualifierId: predKey.qualifierId || '',
+      setMyPred(prev => {
+        const newHome = predKey.home !== undefined ? String(predKey.home) : '';
+        const newAway = predKey.away !== undefined ? String(predKey.away) : '';
+        const newQual = predKey.qualifierId || '';
+        if (prev.home === newHome && prev.away === newAway && prev.qualifierId === newQual) {
+          return prev;
+        }
+        return { home: newHome, away: newAway, qualifierId: newQual };
       });
     }
   }, [predictions, user]);
 
   const savePrediction = async () => {
     if (!user || locked) return;
-    if (myPred.home === '' || myPred.away === '') return;
+    if (String(myPred.home).trim() === '' || String(myPred.away).trim() === '') return;
     setSaving(true);
     try {
       const predRef = doc(db, 'predictions', `${match.id}_${user.uid}`);
@@ -209,7 +213,7 @@ export default function MatchCard({ match, allProfiles, predictions }) {
               {!locked && (
                 <button
                   onClick={savePrediction}
-                  disabled={saving || myPred.home === '' || myPred.away === ''}
+                  disabled={saving || String(myPred.home).trim() === '' || String(myPred.away).trim() === ''}
                   className={`btn-primary text-xs py-2 px-3 disabled:opacity-40 transition-colors duration-300
                               ${saved ? '!bg-green-500 !text-white !border-green-400' : ''}`}
                 >
